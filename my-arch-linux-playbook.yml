@@ -1,0 +1,204 @@
+---
+- hosts: archlinux
+  gather_facts: no
+
+  tasks:
+    - name: Ensure system is up to date
+      pacman:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Install my packages
+      pacman:
+        name:
+          - vim
+          - htop
+          - fish
+          - tmux
+          - curl
+          - wget
+          - openssh
+          - neofetch
+          - clang
+          - cmake
+          - go
+          - wireguard-tools
+        state: present
+
+    - name: Install git, base-devel and yay-bin from AUR
+      shell: |
+        pacman -S --needed --noconfirm git base-devel &&
+        git clone https://aur.archlinux.org/yay-bin.git &&
+        cd yay-bin &&
+        makepkg -si --noconfirm
+      args:
+        creates: yay-bin
+
+    - name: Install docker
+      pacman:
+        name:
+          - docker
+          - docker-compose
+        state: present
+
+    - name: Enable and start docker service
+      shell: |
+        sudo systemctl enable docker &&
+        sudo systemctl start docker
+      args:
+        creates: /usr/bin/docker
+
+    - name: Add current user to docker group
+      become: yes
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Install virtualization packages
+      pacman:
+        name:
+          - virt-manager
+          - virt-viewer
+          - qemu-full
+          - qemu-arch-extra
+          - edk2-ovmf
+          - vde2
+          - ebtables
+          - dnsmasq
+          - bridge-utils
+          - openbsd-netcat
+          - libguestfs
+        state: present
+
+    - name: Copy br10.xml to /root/br10.xml
+      copy:
+        src: br10.xml
+        dest: /root/br10.xml
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Define the network using virsh
+      become: yes
+      shell: virsh net-define /root/br10.xml
+
+    - name: Start the network using virsh
+      become: yes
+      shell: virsh net-start br10
+
+    - name: Set the network to autostart using virsh
+      become: yes
+      shell: virsh net-autostart br10
+
+    - name: Add lines to /etc/libvirt/libvirtd.conf
+      become: yes
+      blockinfile:
+        path: /etc/libvirt/libvirtd.conf
+        block: |
+          unix_sock_group = "libvirt"
+          unix_sock_ro_perms = "0777"
+          unix_sock_rw_perms = "0770"
+
+    - name: Add current user to kvm and libvirt groups
+      become: yes
+      user:
+        name: "{{ ansible_user }}"
+        groups: kvm,libvirt
+        append: yes
+
+    - name: Enable and start libvirtd service
+      shell: |
+        systemctl enable libvirtd.service
+        systemctl start libvirtd.service
+      become: yes
+
+    - name: Remove kvm_amd module
+      become: yes
+      command: modprobe -r kvm_amd
+      ignore_errors: yes
+
+    - name: Load kvm_amd module with nested virtualization
+      become: yes
+      command: modprobe kvm_amd nested=1
+
+    - name: Persist kvm_amd configuration
+      become: yes
+      copy:
+        content: "options kvm-intel nested=1"
+        dest: /etc/modprobe.d/kvm-intel.conf
+
+    - name: Verify nested virtualization
+      command: systool -m kvm_amd -v
+      register: systool_output
+      changed_when: false
+
+    - debug:
+        msg: "Nested virtualization is enabled"
+      when: "'nested = Y' in systool_output.stdout"
+
+    - name: Check nested parameter
+      command: cat /sys/module/kvm_amd/parameters/nested
+      register: nested_param
+      changed_when: false
+
+    - debug:
+        msg: "Nested parameter is set to 1"
+      when: "'Y' in nested_param.stdout"
+
+    - name: Install minikube and kubectl
+      pacman:
+        name:
+          - minikube
+          - kubectl
+        state: present
+
+    - name: Install Rust and Cargo using pacman
+      pacman:
+        name:
+          - rust
+        state: present
+    
+    - name: Install Rust toolchain
+      command: rustup toolchain install toolchain
+      when: rustup_stat.stat.exists
+
+    - name: Set default Rust toolchain
+      command: rustup default toolchain
+      when: rustup_stat.stat.exists
+
+    - name: Check if yay is installed
+      stat:
+        path: /usr/bin/yay
+      register: yay_stat
+
+    - name: Install hyprland using yay
+      command: yay -S hyprland nwg-displays wpaperd nemo wezterm wl-clipboard cliphist wofi grim --noconfirm
+      become: no
+      when: yay_stat.stat.exists
+
+    - name: Ensure my hyprland config directory exists
+      file:
+        path: /home/{{ ansible_user }}/.config/hypr
+        state: directory
+        mode: '0755'
+        owner: "{{ ansible_user }}"
+        group: users
+
+    - name: Copy my hyprland config file
+      copy:
+        src: hyprland.conf 
+        dest: /home/{{ ansible_user }}/.config/hypr/hyprland.conf
+        owner: "{{ ansible_user }}"
+        group: users
+        mode: '0755'
+
+    - name: Install Asian Characters support
+      pacman:
+        name:
+          - adobe-source-han-serif-cn-fonts 
+          - adobe-source-han-serif-jp-fonts 
+          - adobe-source-han-serif-kr-fonts
+          - adobe-source-han-serif-otc-fonts 
+          - adobe-source-han-serif-tw-fonts
+        state: present
