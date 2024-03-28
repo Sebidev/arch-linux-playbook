@@ -44,5 +44,6 @@ Here is a summary of the tasks performed by the Ansible playbook:
 ansible-playbook -i <IP-Adresse>, -u <Username> my-arch-linux-playbook.yml
 ```
 
-Source form pic by malkowitch: https://www.deviantart.com/malkowitch/art/Minimalistic-Arch-Linux-Wallpaper-634403008
+Source form pic by malkowitch: 
+https://www.deviantart.com/malkowitch/art/Minimalistic-Arch-Linux-Wallpaper-634403008
 
