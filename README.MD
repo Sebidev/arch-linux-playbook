@@ -47,7 +47,7 @@ ansible-playbook -i <IP-Adresse>, -u <Username> --ask-pass --ask-become-pass my-
 With password or only SSH-Key
 
 ```
-ansible-playbook -i <IP-Adresse>, -u <Username> --private-key /pfad/zum/privaten/schluessel my-arch-linux-playbook.yml
+ansible-playbook -i <IP-Adresse>, -u <Username> --private-key ~/.ssh/mykey my-arch-linux-playbook.yml
 ```
 
 Source form pic by malkowitch: 
