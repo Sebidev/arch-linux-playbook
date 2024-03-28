@@ -41,7 +41,13 @@ Here is a summary of the tasks performed by the Ansible playbook:
 35. Enable gdm service.
 
 ```
-ansible-playbook -i <IP-Adresse>, -u <Username> my-arch-linux-playbook.yml
+ansible-playbook -i <IP-Adresse>, -u <Username> --ask-pass --ask-become-pass my-arch-linux-playbook.yml
+```
+
+With password or only SSH-Key
+
+```
+ansible-playbook -i <IP-Adresse>, -u <Username> --private-key /pfad/zum/privaten/schluessel my-arch-linux-playbook.yml
 ```
 
 Source form pic by malkowitch: 
