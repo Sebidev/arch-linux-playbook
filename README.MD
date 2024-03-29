@@ -21,6 +21,13 @@ With password or only SSH-Key
 ansible-playbook -i <IP-Adresse>, -u <Username> -k -K my-arch-linux-playbook.yml --private-key ~/.ssh/mykey my-arch-linux-playbook.yml
 ```
 
+When installing yay, there are problems with sudo, so I introduced it for Ansible and then removed it again
+
+```
+[root@archlinux username]# visudo
+username ALL=(ALL) NOPASSWD: ALL
+```
+
 Source form pic by malkowitch: 
 
 https://www.deviantart.com/malkowitch/art/Minimalistic-Arch-Linux-Wallpaper-634403008
