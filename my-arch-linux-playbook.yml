@@ -1,13 +1,15 @@
-- hosts: archlinux
+- hosts: 192.168.178.28
   gather_facts: no
 
   tasks:
     - name: Ensure system is up to date
+      become: yes
       pacman:
         update_cache: yes
         upgrade: yes
 
     - name: Install my packages
+      become: yes
       pacman:
         name:
           - vim
@@ -21,19 +23,33 @@
           - clang
           - cmake
           - go
+          - git
+          - nmap
+          - base-devel
+          - net-tools
           - wireguard-tools
         state: present
 
-    - name: Install git, base-devel and yay-bin from AUR
+    - name: Install yay-bin from AUR
       shell: |
-        pacman -S --needed --noconfirm git base-devel &&
         git clone https://aur.archlinux.org/yay-bin.git &&
         cd yay-bin &&
         makepkg -si --noconfirm
       args:
         creates: yay-bin
 
+    - name: Install iptables-nft
+      become: yes
+      pacman:
+        name: iptables-nft
+        state: present
+
+    - name: Load iptables module
+      become: yes
+      command: modprobe ip_tables    
+
     - name: Install docker
+      become: yes
       pacman:
         name:
           - docker
@@ -41,11 +57,11 @@
         state: present
 
     - name: Enable and start docker service
+      become: yes
       systemd:
         name: docker
         state: started
         enabled: yes
-      become: yes
 
     - name: Add current user to docker group
       become: yes
@@ -55,12 +71,12 @@
         append: yes
 
     - name: Install virtualization packages
+      become: yes
       pacman:
         name:
           - virt-manager
           - virt-viewer
           - qemu-full
-          - qemu-arch-extra
           - edk2-ovmf
           - vde2
           - ebtables
@@ -70,7 +86,15 @@
           - libguestfs
         state: present
 
+    - name: Enable and start libvirtd service
+      become: yes
+      systemd:
+        name: libvirtd
+        state: started
+        enabled: yes
+
     - name: Copy br10.xml to /root/br10.xml
+      become: yes
       copy:
         src: br10.xml
         dest: /root/br10.xml
@@ -106,13 +130,6 @@
         groups: kvm,libvirt
         append: yes
 
-    - name: Enable and start libvirtd service
-      systemd:
-        name: libvirtd
-        state: started
-        enabled: yes
-      become: yes
-
     - name: Remove kvm_amd module
       become: yes
       command: modprobe -r kvm_amd
@@ -141,12 +158,14 @@
       command: cat /sys/module/kvm_amd/parameters/nested
       register: nested_param
       changed_when: false
+      become: yes
 
     - debug:
         msg: "Nested parameter is set to 1"
       when: "'Y' in nested_param.stdout"
 
     - name: Install minikube and kubectl
+      become: yes
       pacman:
         name:
           - minikube
@@ -154,17 +173,23 @@
         state: present
 
     - name: Install Rust and Cargo using pacman
+      become: yes
       pacman:
         name:
-          - rust
+          - rustup
         state: present
-    
+
+    - name: Check if rustup is installed
+      stat:
+        path: /bin/rustup
+      register: rustup_stat
+        
     - name: Install Rust toolchain
-      command: rustup toolchain install toolchain
+      command: rustup toolchain install stable-x86_64-unknown-linux-gnu
       when: rustup_stat.stat.exists
 
     - name: Set default Rust toolchain
-      command: rustup default toolchain
+      command: rustup default stable
       when: rustup_stat.stat.exists
 
     - name: User query before installing Hyprland(Wayland) Destkop Environment
@@ -179,9 +204,39 @@
       register: yay_stat
 
     - name: Install hyprland and other packages using yay
-      command: yay -S hyprland nwg-displays nwg-look-bin wpaperd nemo wezterm wl-clipboard cliphist wofi grim gdm firefox --noconfirm
+      command: yay -S hyprland nwg-displays nwg-look-bin wpaperd wezterm wl-clipboard cliphist wofi grim gdm --noconfirm
       become: no
       when: yay_stat.stat.exists
+
+    - name: Install nemo firefox gbar-git flat-remix flat-remix-gtk for Hyprland using yay
+      command: yay -S firefox nemo gbar-git flat-remix flat-remix-gtk wireshark-qt --noconfirm
+      become: no
+      when: yay_stat.stat.exists
+
+    - name: Install packages for hardware acceleration 
+      become: yes
+      pacman:
+        name:
+            - mesa 
+            - lib32-mesa 
+            - vulkan-radeon 
+            - lib32-vulkan-radeon
+            - vulkan-icd-loader 
+            - lib32-vulkan-icd-loader 
+            - libva-mesa-driver 
+            - lib32-libva-mesa-driver 
+            - mesa-vdpau 
+            - lib32-mesa-vdpau
+            - vulkan-tools
+
+    - name: Install Flatpak
+      become: yes
+      pacman:
+        name: flatpak
+        state: present
+
+    - name: Add Flathub repository
+      command: flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
     - name: Ensure my hyprland config directory exists
       file:
@@ -189,21 +244,88 @@
         state: directory
         mode: '0755'
         owner: "{{ ansible_user }}"
-        group: users
+        group: "{{ ansible_user }}"
 
     - name: Copy my hyprland config file
       copy:
         src: hyprland.conf 
         dest: /home/{{ ansible_user }}/.config/hypr/hyprland.conf
         owner: "{{ ansible_user }}"
-        group: users
+        group: "{{ ansible_user }}"
         mode: '0755'
 
-    - name: Install all nerd-fonts packages
+    - name: Install all packages from nerd-fonts group
       become: yes
-      command: pacman -S $(pacman -Sgq nerd-fonts)
+      pacman:
+        name:
+          - otf-aurulent-nerd
+          - otf-codenewroman-nerd
+          - otf-comicshanns-nerd
+          - otf-commit-mono-nerd
+          - otf-droid-nerd
+          - otf-firamono-nerd
+          - otf-geist-mono-nerd
+          - otf-hasklig-nerd
+          - otf-hermit-nerd
+          - otf-monaspace-nerd
+          - otf-opendyslexic-nerd
+          - otf-overpass-nerd
+          - ttf-0xproto-nerd
+          - ttf-3270-nerd
+          - ttf-agave-nerd
+          - ttf-anonymouspro-nerd
+          - ttf-arimo-nerd
+          - ttf-bigblueterminal-nerd
+          - ttf-bitstream-vera-mono-nerd
+          - ttf-cascadia-code-nerd
+          - ttf-cascadia-mono-nerd
+          - ttf-cousine-nerd
+          - ttf-d2coding-nerd
+          - ttf-daddytime-mono-nerd
+          - ttf-dejavu-nerd
+          - ttf-envycoder-nerd
+          - ttf-fantasque-nerd
+          - ttf-firacode-nerd
+          - ttf-go-nerd
+          - ttf-hack-nerd
+          - ttf-heavydata-nerd
+          - ttf-iawriter-nerd
+          - ttf-ibmplex-mono-nerd
+          - ttf-inconsolata-go-nerd
+          - ttf-inconsolata-lgc-nerd
+          - ttf-inconsolata-nerd
+          - ttf-intone-nerd
+          - ttf-iosevka-nerd
+          - ttf-iosevkaterm-nerd
+          - ttf-jetbrains-mono-nerd
+          - ttf-lekton-nerd
+          - ttf-liberation-mono-nerd
+          - ttf-lilex-nerd
+          - ttf-martian-mono-nerd
+          - ttf-meslo-nerd
+          - ttf-monofur-nerd
+          - ttf-monoid-nerd
+          - ttf-mononoki-nerd
+          - ttf-mplus-nerd
+          - ttf-nerd-fonts-symbols
+          - ttf-nerd-fonts-symbols-mono
+          - ttf-noto-nerd
+          - ttf-profont-nerd
+          - ttf-proggyclean-nerd
+          - ttf-roboto-mono-nerd
+          - ttf-sharetech-mono-nerd
+          - ttf-sourcecodepro-nerd
+          - ttf-space-mono-nerd
+          - ttf-terminus-nerd
+          - ttf-tinos-nerd
+          - ttf-ubuntu-mono-nerd
+          - ttf-ubuntu-nerd
+          - ttf-victor-mono-nerd
+        state: present
+
 
     - name: Install Asian Characters support
+      become: yes
       pacman:
         name:
           - adobe-source-han-serif-cn-fonts 
@@ -219,14 +341,14 @@
         state: directory
         mode: '0755'
         owner: "{{ ansible_user }}"
-        group: users
+        group: "{{ ansible_user }}"
 
     - name: Copy the wallpaper.toml file
       copy:
         src: wallpaper.toml
         dest: /home/{{ ansible_user }}/.config/wpaperd/wallpaper.toml
         owner: "{{ ansible_user }}"
-        group: users
+        group: "{{ ansible_user }}"
         mode: '0755'
 
     - name: Ensure the Wallpapers directory exists
@@ -235,18 +357,18 @@
         state: directory
         mode: '0755'
         owner: "{{ ansible_user }}"
-        group: users
+        group: "{{ ansible_user }}"
     
     - name: Copy the wallpapers
       copy:
         src: minimalistic_arch_linux_wallpaper_by_malkowitch_dahpghs.jpg
         dest: /home/{{ ansible_user }}/Pictures/Wallpapers/minimalistic_arch_linux_wallpaper_by_malkowitch_dahpghs.jpg
         owner: "{{ ansible_user }}"
-        group: users
+        group: "{{ ansible_user }}"
         mode: '0755'
 
     - name: Enable gdm service
+      become: yes
       systemd:
         name: gdm.service
         enabled: yes
-      become: yes
