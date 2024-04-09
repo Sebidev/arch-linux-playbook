@@ -204,7 +204,7 @@
       register: yay_stat
 
     - name: Install hyprland and other packages using yay
-      command: yay -S hyprland nwg-displays nwg-look-bin wpaperd wezterm wl-clipboard cliphist wofi grim gdm --noconfirm
+      command: yay -S hyprland nwg-displays nwg-look-bin wpaperd kitty wl-clipboard cliphist wofi grim gdm --noconfirm
       become: no
       when: yay_stat.stat.exists
 
@@ -228,6 +228,7 @@
             - mesa-vdpau 
             - lib32-mesa-vdpau
             - vulkan-tools
+            - radeontop
 
     - name: Install Flatpak
       become: yes
