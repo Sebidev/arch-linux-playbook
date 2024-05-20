@@ -1,5 +1,7 @@
 # My Arch Linux Ansible Playbook
 
+![Screenshot](screenshot.jpg)
+
 ## Ansible Playbook Tasks
 
 Here is a summary of the tasks performed by the Ansible playbook:
