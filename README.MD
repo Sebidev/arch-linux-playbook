@@ -2,8 +2,6 @@
 
 ![Screenshot](screenshot.jpg)
 
-## Ansible Playbook Tasks
-
 Here is a summary of the tasks performed by the Ansible playbook:
 
 Docker, libvirt with KVM, Rust and Cargo, Golang, C++ Build-Tools, net-tools, minikube and kubectl(Local Kubernetes cluster)
