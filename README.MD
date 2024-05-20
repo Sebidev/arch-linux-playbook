@@ -10,7 +10,7 @@ Docker, libvirt with KVM, Rust and Cargo, Golang, C++ Build-Tools, net-tools, mi
 
 Hyprland(Wayland) Destkop Environment (optional):
 hyprland nwg-displays nwg-look-bin wpaperd wezterm wl-clipboard cliphist wofi grim gdm
-nemo(File Manager), firefox(Browser), gbar-git(Status bar), flat-remix and flat-remix-gtk (Theme)
+nemo(File Manager), firefox(Browser), waybar(Status bar), flat-remix and flat-remix-gtk (Theme)
 Flatpak, full nerd-fonts group, Asian Characters support
 
 ```
