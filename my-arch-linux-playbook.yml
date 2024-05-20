@@ -204,12 +204,12 @@
       register: yay_stat
 
     - name: Install hyprland and other packages using yay
-      command: yay -S hyprland nwg-displays nwg-look-bin wpaperd kitty wl-clipboard cliphist wofi grim gdm --noconfirm
+      command: yay -S hyprland nwg-displays nwg-look-bin waybar wpaperd kitty wl-clipboard cliphist wofi grim gdm --noconfirm
       become: no
       when: yay_stat.stat.exists
 
-    - name: Install nemo firefox gbar-git flat-remix flat-remix-gtk for Hyprland using yay
-      command: yay -S firefox nemo gbar-git flat-remix flat-remix-gtk wireshark-qt --noconfirm
+    - name: Install nemo firefox flat-remix flat-remix-gtk for Hyprland using yay
+      command: yay -S firefox nemo flat-remix flat-remix-gtk wireshark-qt --noconfirm
       become: no
       when: yay_stat.stat.exists
 
@@ -322,7 +322,9 @@
           - ttf-ubuntu-mono-nerd
           - ttf-ubuntu-nerd
           - ttf-victor-mono-nerd
+          - ttf-jetbrains-mono
           - noto-fonts-emoji
+          - ttf-font-awesome-5
         state: present
 
 
@@ -361,6 +363,14 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
     
+    - name: Copy the waybar directory
+      ansible.builtin.copy:
+        src: ./waybar/
+        dest: /home/{{ ansible_user }}/.config/
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
     - name: Copy the wallpapers
       copy:
         src: minimalistic_arch_linux_wallpaper_by_malkowitch_dahpghs.jpg
