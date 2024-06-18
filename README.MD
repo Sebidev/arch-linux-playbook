@@ -12,10 +12,10 @@ nemo(File Manager), firefox(Browser), waybar(Status bar), flat-remix and flat-re
 Flatpak, full nerd-fonts group, Asian Characters support
 
 ```
- ansible-playbook -i <IP-Adresse>, -u <Username> -k -K my-arch-linux-playbook.yml
+ ansible-playbook -i localhost, -c local playbook.yml
 ```
 
-With password or only SSH-Key
+local or ssh-password with ssh-key
 
 ```
 ansible-playbook -i <IP-Adresse>, -u <Username> -k -K my-arch-linux-playbook.yml --private-key ~/.ssh/mykey my-arch-linux-playbook.yml
