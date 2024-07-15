@@ -4,7 +4,7 @@
 
 Here is a summary of the tasks performed by the Ansible playbook:
 
-Docker, libvirt with KVM, Rust and Cargo, Golang, C++ Build-Tools, net-tools, minikube and kubectl(Local Kubernetes cluster)
+Docker, libvirt with KVM, Golang, C++ Build-Tools, net-tools, minikube and kubectl(Local Kubernetes cluster)
 
 Hyprland(Wayland) Destkop Environment (optional):
 hyprland nwg-displays nwg-look-bin wpaperd wezterm wl-clipboard cliphist wofi grim gdm
@@ -19,13 +19,6 @@ local or ssh-password with ssh-key
 
 ```
 ansible-playbook -i <IP-Adresse>, -u <Username> -k -K my-arch-linux-playbook.yml --private-key ~/.ssh/mykey my-arch-linux-playbook.yml
-```
-
-When installing yay, there are problems with sudo, so I introduced it for Ansible and then removed it again
-
-```
-[root@archlinux username]# visudo
-username ALL=(ALL) NOPASSWD: ALL
 ```
 
 Source form pic by malkowitch: 
