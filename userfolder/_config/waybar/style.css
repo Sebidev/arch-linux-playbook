@@ -76,6 +76,7 @@
 #mode,
 #network,
 #pulseaudio,
+#microphone,
 #temperature,
 #tray,
 #backlight,
@@ -156,6 +157,13 @@
 }
 
 #pulseaudio {
+	background: @sound;
+	color: @black;
+}
+
+#custom-microphone {
+	padding-right: 8px;
+	padding-left: 8px;
 	background: @sound;
 	color: @black;
 }

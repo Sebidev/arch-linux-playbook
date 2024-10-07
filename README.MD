@@ -21,7 +21,10 @@ local or ssh-password with ssh-key
 ansible-playbook -i <IP-Adresse>, -u <Username> -k -K my-arch-linux-playbook.yml --private-key ~/.ssh/mykey my-arch-linux-playbook.yml
 ```
 
-Source form pic by malkowitch: 
+Source form pic by malkowitch and other sources: 
 
 https://www.deviantart.com/malkowitch/art/Minimalistic-Arch-Linux-Wallpaper-634403008
-
+https://github.com/ohmyzsh/ohmyzsh
+https://github.com/zsh-users/zsh-autosuggestions
+https://github.com/zsh-users/zsh-history-substring-search
+https://github.com/zsh-users/zsh-syntax-highlighting

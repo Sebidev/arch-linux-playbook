@@ -31,6 +31,13 @@
           - wireguard-tools
           - starship
         state: present
+        
+    - name: Ensure the default editor is set to nano
+      lineinfile:
+        path: /etc/environment
+        line: 'EDITOR=nano'
+        state: present
+        create: yes  # Create the file if it doesn't exist
 
     - name: Ensure sudoers.d directory exists
       become: yes
@@ -39,32 +46,32 @@
         state: directory
         mode: '0750'
 
-    - name: Add sudo configuration for ansible
-      become: yes
+    - name: Create sudoers configuration for {{ ansible_user }}
       copy:
         content: |
           # Allow '{{ ansible_user }}' to run any commands without password
-          {{ ansible_user }} ALL=(ALL) NOPASSWD:ALL
+          {{ ansible_user }} ALL=(ALL) NOPASSWD: ALL
+          Defaults !tty_tickets, timestamp_timeout=0
+          Defaults passwd_tries=100
         dest: /etc/sudoers.d/{{ ansible_user }}
         owner: root
         group: root
         mode: '0440'
+      when: ansible_user is defined  # Ensure ansible_user is set
 
-    - name: Install yay-bin from AUR
+    - name: Validate sudoers file
+      command: visudo -c
+      register: visudo_output
+      failed_when: visudo_output.rc != 0
+      changed_when: false
+
+    - name: Install yay from AUR
       shell: |
-        git clone https://aur.archlinux.org/yay-bin.git &&
-        cd yay-bin &&
+        git clone https://aur.archlinux.org/yay.git &&
+        cd yay &&
         makepkg -si --noconfirm
       args:
-        creates: yay-bin
-
-    - name: Ensure the ip_tables module is listed in /etc/modules
-      become: yes
-      lineinfile:
-        path: /etc/modules
-        state: present
-        regexp: '^ip_tables'
-        line: 'ip_tables'
+        creates: yay
 
     - name: Check if iptables module is loaded
       become: yes
@@ -77,10 +84,11 @@
       command: modprobe ip_tables
       when: iptables_module.rc != 0
     
-    - name: Install docker
+    - name: Install docker & podman
       become: yes
       pacman:
         name:
+          - podman
           - docker
           - docker-compose
         state: present
@@ -230,7 +238,7 @@
       register: yay_stat
 
     - name: Install hyprland and other packages using yay
-      command: yay -S hyprland nwg-look-bin waybar wpaperd kitty wl-clipboard cliphist wofi grim slurp gdm --noconfirm
+      command: yay -S hyprland nwg-look-bin waybar wpaperd kitty wl-clipboard cliphist wofi grim slurp polkit-gnome gdm --noconfirm
       become: no
       when: yay_stat.stat.exists
 
@@ -348,20 +356,11 @@
           - adobe-source-han-serif-tw-fonts
         state: present
 
-    - name: Ensure .config directory exists on remote machine
-      become: yes
-      file:
-        path: "/home/{{ ansible_user }}/.config"
-        state: directory
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: '0755'
-
     - name: Copy configs directory from local to remote .config
       become: yes
       synchronize:
-        src: configs/
-        dest: "/home/{{ ansible_user }}/.config/"
+        src: userfolder/
+        dest: "/home/{{ ansible_user }}/"
         recursive: yes
         rsync_opts:
           - "--chown={{ ansible_user }}:{{ ansible_user }}"

@@ -1,0 +1,38 @@
+pulsemixer
+yay -Syu && flatpak update
+yay -Scc
+GTK_THEME=Adwaita:light libreoffice &
+history delete
+sudo systemctl restart systemd-resolved.service
+waydroid session stop
+systemctl suspend
+cliphist wipe
+lp -d printer <pdf-file>
+python -m http.server 8000
+nvm use v22.3.0
+nslookup google.com
+dig google.com
+dig +short txt ch whoami.cloudflare @1.0.0.1
+dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com
+dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com
+wg-quick up debian-4gb-fsn1
+sudo mkinitcpio -P
+echo sg > /etc/modules-load.d/sg.conf
+sudo modprobe sg
+python -m venv myenv
+source myenv/bin/activate.zsh
+huggingface-cli download remote_modelrepo --local-dir 'path'
+docker system prune -a
+traceroute -I google.com
+yay -Sc && docker system prune -a && docker volume prune -a  && podman system prune -a && podman volume prune
+curl ipinfo.io
+curl ifconfig.me
+/opt/pt/packettracer
+sudo systemctl start dhcpd4.service
+sudo systemctl restart systemd-networkd
+sudo ip addr add 192.168.1.1/24 dev enp7s0
+wpaperctl next
+wpaperctl toggle-pause
+conda create -n myenv
+conda install pip setuptools
+conda deactivate
