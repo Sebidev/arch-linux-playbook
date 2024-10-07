@@ -226,12 +226,6 @@
           - kubectl
         state: present
 
-    - name: User query before installing Hyprland(Wayland) Destkop Environment
-      pause:
-        prompt: "Install Hyprland(Wayland) Destkop Environment? [y/N]"
-      register: user_input
-      failed_when: user_input.user_input | lower != 'y'
-
     - name: Check if yay is installed
       stat:
         path: /usr/bin/yay
